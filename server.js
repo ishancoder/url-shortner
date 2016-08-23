@@ -1,9 +1,9 @@
 var express = require('express');
 var mongo = require('mongodb').MongoClient;
 var ObjectId = require('mongodb').ObjectId;
+var validUrl = require('valid-url');
 var app = express()
 
-var urlRe = /.*\..*\..*/;
 var BASE_URL = "http://localhost:8080"
 var dbUrl = "mongodb://localhost:27017/shorthub";
 var collectionName = "urls";
@@ -38,7 +38,8 @@ app.get('/g/:id', function(req, res){
 
 app.get(['/short/:url','/short/http(s)?://:url'], function(req, res){
 	var url = req.params.url;
-	if(url.match(urlRe)){
+	
+	if(validUrl.isWebUri("http://"+url)){
 		var obj = {original_url: url};
 
 		mongo.connect(dbUrl, function(err, db){
