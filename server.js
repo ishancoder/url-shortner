@@ -10,9 +10,7 @@ var collectionName = "urls";
 
 var generateUrl = function generateUrl(_id){return BASE_URL + '/g/' + _id;};
 
-app.get('/', function(req, res){
-	res.send("<h1>How're you doin??</h1>");
-});
+app.use(express.static('views'));
 
 app.get('/g/:id', function(req, res){
 	var id = req.params.id;
@@ -38,7 +36,7 @@ app.get('/g/:id', function(req, res){
 
 app.get(['/short/:url','/short/http(s)?://:url'], function(req, res){
 	var url = req.params.url;
-	
+
 	if(validUrl.isWebUri("http://"+url)){
 		var obj = {original_url: url};
 
