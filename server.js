@@ -8,37 +8,47 @@ var BASE_URL = "http://localhost:8080"
 var dbUrl = "mongodb://localhost:27017/shorthub";
 var collectionName = "urls";
 
-var generateUrl = function generateUrl(_id){return BASE_URL + '/g/' + _id;};
+var generateUrl = function generateUrl(){
+	var text = "";
+	var possible = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+
+	for(var i=0; i < 7; i++){
+		text += possible.charAt(Math.random() * possible.length);
+	}
+
+	return BASE_URL + '/' + text;
+};
 
 app.use(express.static('views'));
 
-app.get('/g/:id', function(req, res){
+app.get('/:id', function(req, res){
 	var id = req.params.id;
-
-	console.log(id);
 
 	mongo.connect(dbUrl, function(err, db){
 		if(err)
 			throw err;
 		var urls = db.collection(collectionName);
 		urls.findOne({
-			_id: new ObjectId(id)
+			short_url: BASE_URL + "/" + id
 		}, function(err, data){
 			if(err)
 				throw err;
 			if(data != null){
-				res.redirect('http://' + data.original_url);
+				if(data.original_url.startsWith("http") || data.original_url.startsWith("https")){
+					res.redirect(data.original_url);
+				} else {
+					res.redirect("http://" + data.original_url)
+				}
 			}
 		});
 		db.close();
 	});
 });
 
-app.get(['/short/:url','/short/http(s)?://:url'], function(req, res){
-	var url = req.params.url;
+app.get('/short/*', function(req, res){
+	var url = req.path.split('/short/')[1];
 
 	if(validUrl.isWebUri("http://"+url)){
-		var obj = {original_url: url};
 
 		mongo.connect(dbUrl, function(err, db){
 			if(err)
@@ -46,6 +56,8 @@ app.get(['/short/:url','/short/http(s)?://:url'], function(req, res){
 
 			var urls = db.collection(collectionName);
 
+			var shortUrl = generateUrl();
+			var obj = {original_url: url, short_url: shortUrl};
 			urls.insert(obj, function(err, ids){
 				if(err)
 					throw err;
@@ -53,7 +65,7 @@ app.get(['/short/:url','/short/http(s)?://:url'], function(req, res){
 				var id = ids.insertedIds[0];
 				res.json({
 					original_url: url,
-					short_url: generateUrl(id)
+					short_url: shortUrl
 				});
 			});
 
