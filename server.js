@@ -16,6 +16,22 @@ var generateUrl = function generateUrl(){
 		text += possible.charAt(Math.random() * possible.length);
 	}
 
+	//Make sure the short url doesnot clash
+	mongo.connect(dbUrl, function(err, db){
+		var urls = db.collection(collectionName);
+
+		urls.findOne({
+			"short_url": BASE_URL + "/" + text
+		}, function(err, data){
+			if(err)
+				throw err;
+			if(data)
+				text = generateUrl();
+		});
+
+		db.close();
+	});
+
 	return BASE_URL + '/' + text;
 };
 
@@ -39,16 +55,18 @@ app.get('/:id', function(req, res){
 				} else {
 					res.redirect("http://" + data.original_url)
 				}
+			} else {
+				res.status(404).send("<h1>404</h1> page not found...");
 			}
 		});
 		db.close();
 	});
 });
 
-app.get('/short/*', function(req, res){
-	var url = req.path.split('/short/')[1];
+app.get('/short/url', function(req, res){
+	var url = req.query.q;
 
-	if(validUrl.isWebUri("http://"+url)){
+	if(validUrl.isWebUri(url)){
 
 		mongo.connect(dbUrl, function(err, db){
 			if(err)
@@ -57,6 +75,7 @@ app.get('/short/*', function(req, res){
 			var urls = db.collection(collectionName);
 
 			var shortUrl = generateUrl();
+
 			var obj = {original_url: url, short_url: shortUrl};
 			urls.insert(obj, function(err, ids){
 				if(err)

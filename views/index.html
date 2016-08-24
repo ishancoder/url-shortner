@@ -21,9 +21,10 @@
 		</h1>
 	</header>
 	<h3>Form you request like this.</h3>
-	<code>http://localhost:8080/short/www.example.com</code> or <code>http://localhost:8080/g/https://www.example.com</code>
+	<code>http://localhost:8080/short/url?q=https://www.example.com</code>
+	<h4>Make sure to add https or http in your url as shown in example otherwise it won't work</h4>
 	<h3>Sever will respond like this.</h3>
-	<code>{"original_url":"www.example.com","short_url":"http://localhost:8080/g/{url_number}"}</code>
+	<code>{"original_url":"https://www.example.com","short_url":"http://localhost:8080/{url_number}"}</code>
 	<h4>Now if you visit the short URL you will be redirected to the original website.</h4>
 </body>
 </html>
